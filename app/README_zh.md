@@ -2,20 +2,20 @@
 ## This is a Demo About Google Data Binding Guide
 ## The URL is https://developer.android.com/intl/zh-cn/tools/data-binding/guide.html
 
-### Build Environment
+### 初始化依赖
 
-add below code to Top-level build file
+在 Top-level build 文件中加入以下代码
 
     dependencies {
            classpath "com.android.tools.build:gradle:1.3.1"
            classpath "com.android.databinding:dataBinder:1.0-rc1"
        }
 
-add below code to project build file
+在 project build 文件中加入以下代码
 
     apply plugin: 'com.android.databinding'
 
-**if you meet error, update you support library first**
+**如果你gradle sync时遇到了错误，首先尝试升级你的support library**
 
 ###
 
