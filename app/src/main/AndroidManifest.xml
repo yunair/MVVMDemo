@@ -23,6 +23,9 @@
         <activity
             android:name=".view.BaseActivity">
         </activity>
+        <activity
+            android:name=".view.BaseStaticActivity">
+        </activity>
     </application>
 
 </manifest>
