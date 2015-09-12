@@ -2,16 +2,14 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
-        <import type="com.example.User"/>
+        <import type="android.view.View"/>
+        <import type="com.air.mvvmdemo.model.User"/>
         <variable
             name="user1"
             type="User"/>
-
         <variable
             name="user2"
             type="User"/>
-
-        <import type="android.view.View"/>
     </data>
 
     <LinearLayout
@@ -23,12 +21,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{user1.firstName}"
-            android:visibility="@{user1.isFriend ? View.Visible : View.Gone}"/>
+            android:visibility="@{user1.isFriend ? View.VISIBLE : View.GONE}"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{user2.firstName}"
-            android:visibility="@{user2.isFriemd ? View.Visible : View.Gone}"/>
+            android:visibility="@{user2.isFriend ? View.VISIBLE : View.GONE}"/>
     </LinearLayout>
 </layout>

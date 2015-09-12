@@ -24,7 +24,7 @@
             android:name=".view.BaseActivity">
         </activity>
         <activity
-            android:name=".view.BaseStaticActivity">
+            android:name=".view.BaseImportActivity">
         </activity>
     </application>
 
