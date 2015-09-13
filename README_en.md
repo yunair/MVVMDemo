@@ -27,24 +27,24 @@ Data-binding layout files are slightly different and start with a root tag of la
 followed by a data element and a view root element.
 This view element is what your root would be in a non-binding layout file.
 A sample file looks like this:
-```<?xml version="1.0" encoding="utf-8"?>
-   <layout xmlns:android="http://schemas.android.com/apk/res/android">
-      <data>
-          <variable name="user" type="com.example.User"/>
-      </data>
-      <LinearLayout
-          android:orientation="vertical"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent">
-          <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="@{user.firstName}"/>
-          <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="@{user.lastName}"/>
-      </LinearLayout>
-   </layout>
-```
+``` <?xml version="1.0" encoding="utf-8"?>
+    <layout xmlns:android="http://schemas.android.com/apk/res/android">
+       <data>
+           <variable name="user" type="com.example.User"/>
+       </data>
+       <LinearLayout
+           android:orientation="vertical"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent">
+           <TextView android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:text="@{user.firstName}"/>
+           <TextView android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:text="@{user.lastName}"/>
+       </LinearLayout>
+    </layout> ```
+
 The `user` variable within `data` describes a property that may be used within this `layout`.
 
 ```<variable name="user" type="com.example.User"/>```
