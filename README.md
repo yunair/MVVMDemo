@@ -25,7 +25,8 @@
 Data-binding layout 文件和之前的layout 文件有轻微的不同, 以layout标签作为根元素，
 然后其中放置了data标签和之前的view标签。这个view标签就是你之前不使用Data-binding时的根标签。
 下面是一个简单的例子
-``` <?xml version="1.0" encoding="utf-8"?>
+
+    <?xml version="1.0" encoding="utf-8"?>
     <layout xmlns:android="http://schemas.android.com/apk/res/android">
        <data>
            <variable name="user" type="com.example.User"/>
@@ -41,46 +42,45 @@ Data-binding layout 文件和之前的layout 文件有轻微的不同, 以layout
                android:layout_height="wrap_content"
                android:text="@{user.lastName}"/>
        </LinearLayout>
-    </layout> ```
+    </layout>
 
 这个在`data`标签内被定义的`user`变量可以在这个`layout`中使用
 
-```<variable name="user" type="com.example.User"/>```
+    <variable name="user" type="com.example.User"/>
 
 在这个`layout`中使用表达式的语法为："@{}"，
 在下面的代码中，`TextView`的文字将会被设置为user.firstName
 
-```<TextView android:layout_width="wrap_content"
+    <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:text="@{user.firstName}"/>```
-
+          android:text="@{user.firstName}"/>
 
 上面`layout`文件中使用变量的方式转换成在java文件中的方式为，
 `com.example.User user = new com.example.User()`
 这种方式我们一般比较少用，除非类名冲突时，我们一般使用的是另外一种方式
-``` import com.example.User
-    User user = new User() ```
+    import com.example.User
+    User user = new User()
 
 所以在`data`标签内，你也可以这样写
-``` <import type="com.example.User"/>
-   <variable name="user" type="User"/> ```
+    <import type="com.example.User"/>
+   <variable name="user" type="User"/>
 
 
 如果类名冲突，`import`标签有一个子标签叫做`alias`
 eg:
-``` <import type="android.view.View"/>
+    <import type="android.view.View"/>
     <import type="com.example.real.estate.View"
-            alias="Vista"/> ```
+            alias="Vista"/>
 现在, "Vista" 将会作为`com.example.real.estate.View`的引用
 "View" 将会作为 `android.view.View`的引用
 
 既然引入了包，当然可以像Java一样使用包内的静态方法了，
 例如 : `import`了`View`类, 你可以像下面以下使用View中的static方法
-``` <TextView
+    <TextView
        android:text="@{user.lastName}"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
-       android:visibility="@{View.VISIBLE}"/> ```
+       android:visibility="@{View.VISIBLE}"/>
 
 像在java中一样, `java.lang.*` 会默认被import.
 
@@ -89,17 +89,17 @@ eg:
 plain-old Java object (POJO) or JavaBeans 对象来表示它
 
 POJO
-``` public class User {
+    public class User {
        public final String firstName;
        public final String lastName;
        public User(String firstName, String lastName) {
            this.firstName = firstName;
            this.lastName = lastName;
        }
-    } ```
+    }
 
 JavaBeans
-``` public class User {
+    public class User {
        private final String firstName;
        private final String lastName;
        public User(String firstName, String lastName) {
@@ -112,7 +112,7 @@ JavaBeans
        public String getLastName() {
            return this.lastName;
        }
-    } ```
+    }
 
 ### Binding Data
 默认情况下，绑定类的类名依赖`layout`文件，将`layout`文件名转化成驼峰命名，然后接一个"Binding"后缀
@@ -121,13 +121,13 @@ eg: `activity_main.xml` 将会产生一个名为 `ActivityMainBinding` 的类
 上面的`layout` 文件名为 `main_activity.xml` 所以产生的类为 `MainActivityBinding`.
 这个类将会从layout属性中获取所有的绑定变量，layout将会知道在视图中如何给绑定变量赋值
 创建一个Binding最简单的方式就是初始化inflating layout的时候
-``` @Override
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
        MainActivityBinding binding = DataBindingUtil.setContentView(this, R.layout.main_activity);
        User user = new User("Test", "User");
        binding.setUser(user);
-    } ```
+    }
 
 ### Custom Binding Class Names
 默认情况下，通过`layout`文件名生成的类将会被放置在当前模块的`databinging`包下，
@@ -139,21 +139,21 @@ eg: `activity_main.xml` 将会产生一个名为 `ActivityMainBinding` 的类
 如果你想自定义自动生成的类所在的名字和位置，可以通过在`data`标签内添加`class`属性来实现
 
 eg:
-``` <data class="ContactItem">
+    <data class="ContactItem">
         ...
-    </data> ```
+    </data>
 
 上面这种情况将会在当前模块的`databinding`包内生成`ContactItem`类
 如果想要在当前模块的包内生成`ContactItem`类,只需要加一个“.”前缀：
 
-``` <data class=".ContactItem">
+    <data class=".ContactItem">
         ...
-    </data> ```
+    </data>
 
 如果想指定在哪个包内生成绑定的类，使用包的全名+类名的形式
-``` <data class="com.example.ContactItem">
+    <data class="com.example.ContactItem">
         ...
-    </data> ```
+    </data>
 
 你可以在`CustomBindingClassNameActivity.java`中看到其中的区别
 
