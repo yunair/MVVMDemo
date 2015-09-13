@@ -27,6 +27,7 @@ Data-binding layout files are slightly different and start with a root tag of la
 followed by a data element and a view root element.
 This view element is what your root would be in a non-binding layout file.
 A sample file looks like this:
+
     <?xml version="1.0" encoding="utf-8"?>
     <layout xmlns:android="http://schemas.android.com/apk/res/android">
        <data>
@@ -58,26 +59,33 @@ Here, the TextView’s text is set to the firstName property of user:
 
 
 the way to using variable in 'layout' converting it in 'java' is
-`com.example.User user = new com.example.User()`
+
+    com.example.User user = new com.example.User();
+
 we don't use this way often, except the class name conflicts,
 In general, we will use this way:
+
     import com.example.User
-    User user = new User()     
+    User user = new User()
 
 so in `data`element，you can do the same thing by this
+
     <import type="com.example.User"/>
-   <variable name="user" type="User"/>     
+    <variable name="user" type="User"/>
 
 If you meet class name conflicts, `import` element has a child element named `alias`
 eg:
+
     <import type="android.view.View"/>
     <import type="com.example.real.estate.View"
-            alias="Vista"/>     
+            alias="Vista"/>
+
 Now, "Vista" may be used to reference the `com.example.real.estate.View`
 and "View" may be used to reference `android.view.View`
 
 You can use static method as in Java
 eg :  `android.view.View` is imported, you can use `View`'s static methods as below
+
     <TextView
        android:text="@{user.lastName}"
        android:layout_width="wrap_content"
@@ -90,7 +98,8 @@ Just as in Java, java.lang.* is imported automatically.
 
 you can use a plain-old Java object (POJO) or JavaBeans object for User
 
-POJO
+POJO:
+
     public class User {
        public final String firstName;
        public final String lastName;
@@ -100,7 +109,8 @@ POJO
        }
     }     
 
-JavaBeans
+JavaBeans:
+
     public class User {
        private final String firstName;
        private final String lastName;
@@ -126,6 +136,7 @@ The above layout file was `main_activity.xml` so the generate class was `MainAct
 This class holds all the bindings from the layout properties (e.g. the user variable)
 to the layout’s Views and knows how to assign values for the binding expressions.
 The easiest means for creating the bindings is to do it while inflating:
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
@@ -148,6 +159,7 @@ If you want to use non-default Binding Class Names or change the place of the cl
 You can custom them by adjusting the class attribute of the data element.
 
 For example:
+
     <data class="ContactItem">
         ...
     </data>     
