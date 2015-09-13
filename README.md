@@ -164,7 +164,7 @@ eg:
 同时记得在java文件中set那个Handler，你可以在`BaseActivity.java`中看到具体的用法
 
 
-[1] : README_en.md
+[1]: README_en.md
 
 
 
