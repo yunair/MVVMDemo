@@ -65,8 +65,8 @@ the way to using variable in 'layout' converting it in 'java' is
 we don't use this way often, except the class name conflicts,
 In general, we will use this way:
 
-    import com.example.User
-    User user = new User()
+    import com.example.User;
+    User user = new User();
 
 so in `data`element，you can do the same thing by this
 
@@ -92,7 +92,7 @@ eg :  `android.view.View` is imported, you can use `View`'s static methods as be
        android:layout_height="wrap_content"
        android:visibility="@{View.VISIBLE}"/>     
 
-Just as in Java, java.lang.* is imported automatically.
+Just as in Java, `java.lang.*` is imported automatically.
 
 ### Data Object
 
@@ -130,6 +130,7 @@ JavaBeans:
 
 By default, a Binding class will be generated based on the name of the layout file,
 converting it to Pascal case and suffixing “Binding” to it.
+
 eg: `activity_main.xml` will be generated a class Named `ActivityMainBinding`
 
 The above layout file was `main_activity.xml` so the generate class was `MainActivityBinding`.
@@ -146,6 +147,7 @@ The easiest means for creating the bindings is to do it while inflating:
     }     
 
 ### Custom Binding Class Names
+
 By default, a Binding class is generated based on the name of the layout file,
 starting it with upper-case, removing underscores ( _ ) and
 capitalizing the following letter and then suffixing “Binding”.
