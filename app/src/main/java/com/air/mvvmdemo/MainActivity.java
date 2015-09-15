@@ -7,7 +7,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-import com.air.mvvmdemo.view.BaseImportActivity;
+import com.air.mvvmdemo.view.QuoteActivity;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        startActivity(new Intent(this, BaseImportActivity.class));
+        startActivity(new Intent(this, QuoteActivity.class));
     }
 
 }

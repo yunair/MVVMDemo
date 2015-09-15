@@ -191,6 +191,131 @@ Binding Event is similar with Binding Data, first define a handler to handle the
 declare the event in '@{}', at the same time, set the handler in java file,
 you can see usage in `BaseActivity.java`
 
-
 ### Includes
+Variables may be passed into an included layout's binding from the containing layout
+by using the application namespace and the variable name in an attribute:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:bind="http://schemas.android.com/apk/res-auto">
+   <data>
+       <variable name="user" type="com.example.User"/>
+   </data>
+   <LinearLayout
+       android:orientation="vertical"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
+       <include layout="@layout/name"
+           bind:user="@{user}"/>
+       <include layout="@layout/contact"
+           bind:user="@{user}"/>
+   </LinearLayout>
+</layout>
+```
+
+you need `user` variable as a direct child of a data element in your `name.xml` and `contact.xml`
+
+Data binding does not support `include` as a direct child of a `merge` element.
+
+### Expression Language
+
+#### Common Features
+
+The expression language looks a lot like a Java expression. These are the same:
+
+- Mathematical + - / * %
+- String concatenation +
+- Logical && ||
+- Binary & | ^
+- Unary + - ! ~
+- Shift >> >>> <<
+- Comparison == > < >= <=
+- instanceof
+- Grouping ()
+- Literals - character, String, numeric, null
+- Cast
+- Method calls
+- Field access
+- Array access []
+- Ternary operator ?:
+
+#### Missing Operations
+
+A few operations are missing from the expression syntax that you can use in Java.
+
+- this
+- super
+- new
+- Explicit generic invocation
+
+#### Null Coalescing Operator
+
+The null coalescing operator (`??`) chooses the left operand if it is not null or the right if it is null.
+
+```xml
+android:text="@{user.displayName ?? user.lastName}"
+android:text="@{user.displayName != null ? user.displayName : user.lastName}"
+```
+two sentences are the same
+
+#### Collections
+
+```xml
+<data>
+    <import type="android.util.SparseArray"/>
+    <import type="java.util.Map"/>
+    <import type="java.util.List"/>
+    <variable name="list" type="List&lt;String>"/>
+    <variable name="sparse" type="SparseArray&lt;String>"/>
+    <variable name="map" type="Map&lt;String, String>"/>
+    <variable name="index" type="int"/>
+    <variable name="key" type="String"/>
+</data>
+…
+android:text="@{list[index]}"
+…
+android:text="@{sparse[index]}"
+…
+android:text="@{map[key]}"
+```
+
+#### String Literals
+
+You have three way to use String literals
+```xml
+android:text='@{map["firstName"]}'
+android:text="@{map[`firstName`]}"
+android:text="@{map[&quot;firstName&quot;]}"
+```
+- using single quotes around the attribute value
+- using double quotes around the attribute value,  use the back quote (```) for string.
+- using double quotes around the attribute value,  use the `&quot;`for string.
+
+this demo you can see `QuoteActivity.java`
+
+
+#### Resources
+
+It is possible to access resources as part of expressions using the normal syntax:
+```xml
+android:padding="@{large? @dimen/largePadding : @dimen/smallPadding}"
+```
+
+Format strings and plurals may be evaluated by providing parameters:
+```xml
+android:text="@{@string/nameFormat(firstName, lastName)}"
+android:text="@{@plurals/banana(bananaCount)}"
+```
+
+Some resources require explicit type evaluation.
+
+|Type	            |Normal Reference  |Expression Reference
+| :---:             | :---:            | :---:
+|String[]	        |@array	           |@stringArray
+|int[]	            |@array	           |@intArray
+|TypedArray	        |@array	           |@typedArray
+|Animator	        |@animator	       |@animator
+|StateListAnimator	|@animator	       |@stateListAnimator
+|color int	        |@color	           |@color
+|ColorStateList	    |@color	           |@colorStateList
 

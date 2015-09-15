@@ -17,7 +17,7 @@ public class BaseActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityBaseBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        ActivityBaseBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_base);
         User user1 = new User("Test1", "User1", false);
         User user2 = new User("Test2", "User2", true);
         binding.setUser1(user1);

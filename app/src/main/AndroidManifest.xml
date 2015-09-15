@@ -26,6 +26,12 @@
         <activity
             android:name=".view.BaseImportActivity">
         </activity>
+        <activity
+            android:name=".view.IncludeActivity">
+        </activity>
+        <activity
+            android:name=".view.QuoteActivity">
+        </activity>
     </application>
 
 </manifest>

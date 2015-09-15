@@ -182,6 +182,130 @@ eg:
 和绑定数据类似，定义一个Handler类来处理事件，然后将对应的事件在`@{}`中声明，
 同时记得在java文件中set那个Handler，你可以在`BaseActivity.java`中看到具体的用法
 
+### Includes
+
+使用最外部bind属性和`data`标签内的变量，可以将需要的变量从当前`layout`传入被include的`layout`
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:bind="http://schemas.android.com/apk/res-auto">
+   <data>
+       <variable name="user" type="com.example.User"/>
+   </data>
+   <LinearLayout
+       android:orientation="vertical"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
+       <include layout="@layout/name"
+           bind:user="@{user}"/>
+       <include layout="@layout/contact"
+           bind:user="@{user}"/>
+   </LinearLayout>
+</layout>
+```
+
+在你的`name.xml`和`contact.xml`的`data`标签内，必须也拥有`user`变量，该Demo参见`IncludeActivity.java`
+
+### Expression Language
+
+#### Common Features
+
+DataBinding的表达式就像Java的表达式类似，下面这些是相同的:
+
+- Mathematical + - / * %
+- String concatenation +
+- Logical && ||
+- Binary & | ^
+- Unary + - ! ~
+- Shift >> >>> <<
+- Comparison == > < >= <=
+- instanceof
+- Grouping ()
+- Literals - character, String, numeric, null
+- Cast
+- Method calls
+- Field access
+- Array access []
+- Ternary operator ?:
+
+#### Missing Operations
+
+下面的表达式从Java中去掉了
+
+- this
+- super
+- new
+- Explicit generic invocation
+
+#### Null Coalescing Operator
+
+这就是简化的null判断表达式，使用(`??`)来表示，如果左边的值为null，则使用右边的值。
+下面两个表达式是相同的
+```xml
+android:text="@{user.displayName ?? user.lastName}"
+android:text="@{user.displayName != null ? user.displayName : user.lastName}"
+```
+
+#### Collections
+
+通用的容器: arrays, lists, sparse lists, and maps 可以通过[]操作符来使用
+```xml
+<data>
+    <import type="android.util.SparseArray"/>
+    <import type="java.util.Map"/>
+    <import type="java.util.List"/>
+    <variable name="list" type="List&lt;String>"/>
+    <variable name="sparse" type="SparseArray&lt;String>"/>
+    <variable name="map" type="Map&lt;String, String>"/>
+    <variable name="index" type="int"/>
+    <variable name="key" type="String"/>
+</data>
+…
+android:text="@{list[index]}"
+…
+android:text="@{sparse[index]}"
+…
+android:text="@{map[key]}"
+```
+可以看到我使用了`&lt;`来代替`<`，因为在xml里面，不允许在`""`内使用`<`,所以使用了xml的特殊字符来替代，
+下面也有类似的情况
+
+#### String Literals
+
+你有三种方式来使用String
+```xml
+android:text='@{map["firstName"]}'
+android:text="@{map[`firstName`]}"
+android:text="@{map[&quot;firstName&quot;]}"
+```
+- 使用单引号`'`作为最外层包裹
+- 使用双引号`"`作为最外层包裹，但是内部使用反引号```
+- 使用双引号`"`作为最外层包裹，但是内部使用xml的特殊字符`&quot;`来代替需要的双引号
+
+可以在`QuoteActivity.java`类看具体的用法
+
+#### Resources
+
+当然，在`@{}`使用常规的语法访问资源文件是没问题的
+但是，如果是strings和plurals类型，在xml里定义了格式化参数，就需要将参数传入其中
+```xml
+android:padding="@{large? @dimen/largePadding : @dimen/smallPadding}"
+android:text="@{@string/nameFormat(firstName, lastName)}"
+android:text="@{@plurals/banana(bananaCount)}"
+```
+
+一些元素需要明确的类型
+
+|Type	            |Normal Reference  |Expression Reference
+| :---:             | :---:            | :---:
+|String[]	        |@array	           |@stringArray
+|int[]	            |@array	           |@intArray
+|TypedArray	        |@array	           |@typedArray
+|Animator	        |@animator	       |@animator
+|StateListAnimator	|@animator	       |@stateListAnimator
+|color int	        |@color	           |@color
+|ColorStateList	    |@color	           |@colorStateList
+
 
 [1]: ./README_en.md
 
