@@ -248,7 +248,7 @@ android:text="@{user.displayName != null ? user.displayName : user.lastName}"
 
 #### Collections
 
-通用的容器: arrays, lists, sparse lists, and maps 可以通过[]操作符来使用
+通用的集合: arrays, lists, sparse lists, and maps 可以通过[]操作符来使用
 ```xml
 <data>
     <import type="android.util.SparseArray"/>
@@ -305,6 +305,130 @@ android:text="@{@plurals/banana(bananaCount)}"
 |StateListAnimator	|@animator	       |@stateListAnimator
 |color int	        |@color	           |@color
 |ColorStateList	    |@color	           |@colorStateList
+
+
+### Data Objects
+
+一个POJO可以被用在数据绑定中，但是，修改POJO的时候UI不会更新
+数据绑定最方便的一点在于给了你数据对象通知的能力，当你的数据改变时。
+有三种不同的数据改变通知机制，`Observable objects`, `observable fields`, and `observable collections`.
+
+当这些可以观察的数据对象绑定到UI，当数据改变时，UI也会被自动的改变
+
+#### Observable Objects
+
+一个实现`Observable`接口的类将会
+
+`Observable` 接口拥有添加和移除监听者的方法,但是，什么时候通知这些监听者则由开发者决定。
+为了更容易的完成开发, 创造了`BaseObservable`这个基类实现了接口注册监听者的方法。
+这些数据类的编写者们需要决定何时通知监听者数据改变了，做法就是把`Bindable`注解赋值给对应的get方法，在set方法里发送通知。
+
+```java
+private static class User extends BaseObservable {
+   private String firstName;
+   private String lastName;
+   @Bindable
+   public String getFirstName() {
+       return this.firstName;
+   }
+   @Bindable
+   public String getLastName() {
+       return this.lastName;
+   }
+   public void setFirstName(String firstName) {
+       this.firstName = firstName;
+       notifyPropertyChanged(BR.firstName);
+   }
+   public void setLastName(String lastName) {
+       this.lastName = lastName;
+       notifyPropertyChanged(BR.lastName);
+   }
+}
+```
+在编辑的时候，`Bindable`注解将会在`BR`类文件内产生一个实体，`BR`类文件将会被生成在当前模块的包内。
+如果数据类的基类不能被改变，使用`PropertyChangeRegistry`类来有效的储存和通知监听者来达到实现`Observable`接口的目的
+
+#### ObservableFields
+
+创建 `Observable` 类需要做一些额外的工作, 所以，如果开发者们想省时间或者数据类中只有很少的属性，
+可以使用`ObservableField`和它的兄弟姐妹们`ObservableBoolean`,`ObservableByte`, `ObservableChar`,
+`ObservableShort`, `ObservableInt`, `ObservableLong`, `ObservableFloat`,`ObservableDouble`, 和 `ObservableParcelable`.
+`ObservableFields`是一个有单一变量的可观察的对象。
+(不知道怎么翻译，直接把原文放在此做比对`ObservableFields` are self-contained observable objects that have a single field.)
+对于原始类型，在访问的时候会防止自动装箱和拆箱操作
+使用方法，创建一个final变量在数据类中：
+```java
+private static class User {
+   public final ObservableField<String> firstName =
+       new ObservableField<>();
+   public final ObservableField<String> lastName =
+       new ObservableField<>();
+   public final ObservableInt age = new ObservableInt();
+}
+```
+通过get和set方法访问它的值
+```java
+user.firstName.set("Google");
+int age = user.age.get();
+```
+
+#### Observable Collections
+
+一些应用需要更灵活的结构来储存数据。Observable集合允许通过key来访问这些数据
+集合提供里两种方式：`ObservableArrayMap` and `ObservableArrayList`
+
+当key是引用类型的时候，(例如String)，推荐使用`ObservableArrayMap`
+```java
+ObservableArrayMap<String, Object> user = new ObservableArrayMap<>();
+user.put("firstName", "Google");
+user.put("lastName", "Inc.");
+user.put("age", 17);
+```
+在layout中, map通过字符串的keys来访问:
+```xml
+<data>
+    <import type="android.databinding.ObservableMap"/>
+    <variable name="user" type="ObservableMap&lt;String, Object>"/>
+</data>
+…
+<TextView
+   android:text='@{user["lastName"]}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+<TextView
+   android:text='@{String.valueOf(1 + (Integer)user["age"])}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+当key是int类型的时候，推荐使用`ObservableArrayList` :
+```java
+ObservableArrayList<Object> user = new ObservableArrayList<>();
+user.add("Google");
+user.add("Inc.");
+user.add(17);
+```
+在layout中, list通过indices来访问:
+```xml
+<data>
+    <import type="android.databinding.ObservableList"/>
+    <import type="com.example.my.app.Fields"/>
+    <variable name="user" type="ObservableList&lt;Object>"/>
+</data>
+…
+<TextView
+   android:text='@{user[Fields.LAST_NAME]}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+<TextView
+   android:text='@{String.valueOf(1 + (Integer)user[Fields.AGE])}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+
+该Demo参见`ObservableModel.java`
+
+### Generated Binding
+
 
 
 [1]: ./README_en.md

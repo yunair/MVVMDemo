@@ -319,3 +319,134 @@ Some resources require explicit type evaluation.
 |color int	        |@color	           |@color
 |ColorStateList	    |@color	           |@colorStateList
 
+### Data Objects
+
+Any plain old Java object (POJO) may be used for data binding, but modifying a POJO will not cause the UI to update.
+The real power of data binding can be used by giving your data objects the ability to notify when data changes.
+There are three different data change notification mechanisms, `Observable objects`, `observable fields`, and `observable collections`.
+
+When one of these observable data object is bound to the UI and a property of the data object changes, the UI will be updated automatically.
+
+#### Observable Objects
+
+A class implementing the Observable interface will allow the binding to attach a single listener to a bound object
+to listen for changes of all properties on that object.
+
+The `Observable` interface has a mechanism to add and remove listeners,but notifying is up to the developer.
+To make development easier, a base class, `BaseObservable`, was created to implement the listener registration mechanism.
+The data class implementer is still responsible for notifying when the properties change.
+This is done by assigning a `Bindable` annotation to the getter and notifying in the setter.
+
+```java
+private static class User extends BaseObservable {
+   private String firstName;
+   private String lastName;
+   @Bindable
+   public String getFirstName() {
+       return this.firstName;
+   }
+   @Bindable
+   public String getLastName() {
+       return this.lastName;
+   }
+   public void setFirstName(String firstName) {
+       this.firstName = firstName;
+       notifyPropertyChanged(BR.firstName);
+   }
+   public void setLastName(String lastName) {
+       this.lastName = lastName;
+       notifyPropertyChanged(BR.lastName);
+   }
+}
+```
+The `Bindable` annotation generates an entry in the `BR` class file during compilation.
+The `BR` class file will be generated in the module package. If the base class for data classes cannot be changed,
+the `Observable` interface may be implemented using the convenient `PropertyChangeRegistry` to store and notify listeners efficiently.
+
+#### ObservableFields
+
+A little work is involved in creating `Observable` classes, so developers who want to
+save time or have few properties may use `ObservableField` and its siblings `ObservableBoolean`,
+`ObservableByte`, `ObservableChar`, `ObservableShort`, `ObservableInt`, `ObservableLong`, `ObservableFloat`,`ObservableDouble`, and `ObservableParcelable`.
+`ObservableFields` are self-contained observable objects that have a single field.
+The primitive versions avoid boxing and unboxing during access operations.
+To use, create a public final field in the data class:
+```java
+private static class User {
+   public final ObservableField<String> firstName =
+       new ObservableField<>();
+   public final ObservableField<String> lastName =
+       new ObservableField<>();
+   public final ObservableInt age = new ObservableInt();
+}
+```
+To access the value, use the set and get accessor methods:
+```java
+user.firstName.set("Google");
+int age = user.age.get();
+```
+
+#### Observable Collections
+
+Some applications use more dynamic structures to hold data.
+Observable collections allow keyed access to these data objects.
+there are two ways in collections
+`ObservableArrayMap` and `ObservableArrayList`
+
+
+`ObservableArrayMap` is useful when the key is a reference type, such as String.
+
+```java
+ObservableArrayMap<String, Object> user = new ObservableArrayMap<>();
+user.put("firstName", "Google");
+user.put("lastName", "Inc.");
+user.put("age", 17);
+```
+In the layout, the map may be accessed through the String keys:
+```xml
+<data>
+    <import type="android.databinding.ObservableMap"/>
+    <variable name="user" type="ObservableMap&lt;String, Object>"/>
+</data>
+…
+<TextView
+   android:text='@{user["lastName"]}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+<TextView
+   android:text='@{String.valueOf(1 + (Integer)user["age"])}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+`ObservableArrayList` is useful when the key is an integer:
+```java
+ObservableArrayList<Object> user = new ObservableArrayList<>();
+user.add("Google");
+user.add("Inc.");
+user.add(17);
+```
+In the layout, the list may be accessed through the indices:
+```xml
+<data>
+    <import type="android.databinding.ObservableList"/>
+    <import type="com.example.my.app.Fields"/>
+    <variable name="user" type="ObservableList&lt;Object>"/>
+</data>
+…
+<TextView
+   android:text='@{user[Fields.LAST_NAME]}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+<TextView
+   android:text='@{String.valueOf(1 + (Integer)user[Fields.AGE])}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+
+You can see these in `ObservableModel.java`
+
+### Generated Binding
+
+The generated binding class links the layout variables with the Views within the layout.
+As discussed earlier, the name and package of the Binding may be customized.
+The Generated binding classes all extend `ViewDataBinding`.

@@ -22,3 +22,4 @@ public class User {
         this.isFriend = isFriend;
     }
 }
+
