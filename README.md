@@ -353,10 +353,10 @@ private static class User extends BaseObservable {
 创建 `Observable` 类需要做一些额外的工作, 所以，如果开发者们想省时间或者数据类中只有很少的属性，
 可以使用`ObservableField`和它的兄弟姐妹们`ObservableBoolean`,`ObservableByte`, `ObservableChar`,
 `ObservableShort`, `ObservableInt`, `ObservableLong`, `ObservableFloat`,`ObservableDouble`, 和 `ObservableParcelable`.
-`ObservableFields`是一个有单一变量的可观察的对象。
+`ObservableFields`是一个有单一变量的可观察的字段。
 (不知道怎么翻译，直接把原文放在此做比对`ObservableFields` are self-contained observable objects that have a single field.)
-对于原始类型，在访问的时候会防止自动装箱和拆箱操作
-使用方法，创建一个final变量在数据类中：
+对于原始类型，在访问的时候会防止自动装箱和拆箱操作。
+使用方法，创建一个public final字段在数据类中：
 ```java
 private static class User {
    public final ObservableField<String> firstName =
@@ -429,6 +429,126 @@ user.add(17);
 
 ### Generated Binding
 
+产生的绑定类连接到layout中带有变量的Views
+像之前提到的一样，绑定类的名字和其所属的包名都可以自定义。所有生成的绑定类都继承自`ViewDataBinding`
+
+#### Creating
+
+**个人觉得在`Fragment`中比较常用**
+
+绑定类需要在inflate之后立刻被创建。
+这里有一些方式来实现绑定`layout`。
+最常用的方式是使用`Binding`类提供的静态方法，inflate方法在一步之内完成了inflate了View层级以及绑定到对应的`layout`。
+还有一个简单的版本只需要`LayoutInflater`参数
+only takes a LayoutInflater and one that takes a ViewGroup as well:
+
+```java
+MyLayoutBinding binding = MyLayoutBinding.inflate(layoutInflater);
+MyLayoutBinding binding = MyLayoutBinding.inflate(layoutInflater, viewGroup, false);
+```
+如果该`layout`被其他的方式inflate了，它需要单独的绑定
+```java
+MyLayoutBinding binding = MyLayoutBinding.bind(viewRoot);
+```
+某些时候，不能提前知道绑定到哪个`layout`上。在这种情况下，可以通过使用`DataBindingUtil`类来进行绑定
+```java
+ViewDataBinding binding = DataBindingUtil.inflate(LayoutInflater, layoutId,
+    parent, attachToParent);
+ViewDataBinding binding = DataBindingUtil.bindTo(viewRoot, layoutId);
+```
+
+### Views With IDs
+
+在`layout`中对每个有ID的View，在对应的绑定类中会产生一个public final字段。
+数据绑定会提取出这些View的Id，通过在View层级上使用单向传递，这个方式会比对一堆View使用`findViewById`快一些
+
+```xml
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+   <data>
+       <variable name="user" type="com.example.User"/>
+   </data>
+   <LinearLayout
+       android:orientation="vertical"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
+       <TextView android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="@{user.firstName}"
+   android:id="@+id/firstName"/>
+       <TextView android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="@{user.lastName}"
+  android:id="@+id/lastName"/>
+   </LinearLayout>
+</layout>
+```
+将会在绑定类中产生这样如下的变量
+```xml
+public final TextView firstName;
+public final TextView lastName;
+```
+使用数据绑定，几乎不需要ID，但是在某些情况下，仍然有通过代码访问View的需要。
+
+### Variables
+
+每个在`data`标签内的变量都会被给予`get`和`set`方法
+```xml
+<data>
+    <import type="android.graphics.drawable.Drawable"/>
+    <variable name="user"  type="com.example.User"/>
+    <variable name="image" type="Drawable"/>
+    <variable name="note"  type="String"/>
+</data>
+```
+将会在生成的绑定类中产生`get`和`set`如下
+
+```java
+public abstract com.example.User getUser();
+public abstract void setUser(com.example.User user);
+public abstract Drawable getImage();
+public abstract void setImage(Drawable image);
+public abstract String getNote();
+public abstract void setNote(String note);
+```
+
+### ViewStubs
+
+`ViewStub`s 和正常的View是不同的.它们在刚开始的时候是不可见的，当他们变的可见或者被明确的inflate之后，
+它们会被另外一个layout中inflate的View替代。
+
+因为`ViewStub`本质上在View层级中是不存在的，所以在绑定对象中的View必须也不存在。
+因为Views是final的，所以`ViewStubProxy` 对象替代了`ViewStub`,给了开发者访问`ViewStub`
+giving the developer access to the `ViewStub` when it exists and also access to the inflated View hierarchy when the `ViewStub` has been inflated.
+
+当inflate其他的layout时，必须建立一个新的绑定来绑定新的layout。因此，`ViewStubProxy`必须在监听`ViewStub`的 `ViewStub.OnInflateListener`的同时建立绑定。
+因为只有一个可以存在， `ViewStubProxy`允许开发者为它设置一个`OnInflateListener`，它会在建立绑定之后被调用
+
+### Advanced Binding
+
+#### Dynamic Variables
+
+有时候，不能立刻知道具体的绑定类。例如，一个`RecyclerView.Adapter`操作任意layout，这个时候我们不能知道具体的绑定类。
+但是它必须被赋值给一个绑定的值在执行`onBindViewHolder(VH, int)`的时候。
+
+在上面的例子中，所有RecyclerView绑定的layout有一个"item"变量，
+`BindingHolder`类有一个`getBinding`方法返回基类`ViewDataBinding`
+```java
+public void onBindViewHolder(BindingHolder holder, int position) {
+   final T item = mItems.get(position);
+   holder.getBinding().setVariable(BR.item, item);
+   holder.getBinding().executePendingBindings();
+}
+```
+
+#### Immediate Binding
+
+当一个变量或者一个可观察的东西改变时，对应的UI将会在下一帧之前被改变。
+然而，有时候UI必须立刻被改变。为了强制进行这个改变，主动调用`executePendingBindings() `方法。
+
+#### Background Thread
+
+你可以修改你的数据model在后台线程中，只要它不是一个集合。
+在操作的时候，数据绑定将会把变量/字段变成局部的，防止任何并发的问题发生。
 
 
 [1]: ./README_en.md

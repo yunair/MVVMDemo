@@ -32,6 +32,9 @@
         <activity
             android:name=".view.QuoteActivity">
         </activity>
+        <activity
+            android:name=".view.ViewWithIDActivity">
+        </activity>
     </application>
 
 </manifest>

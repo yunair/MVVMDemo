@@ -450,3 +450,128 @@ You can see these in `ObservableModel.java`
 The generated binding class links the layout variables with the Views within the layout.
 As discussed earlier, the name and package of the Binding may be customized.
 The Generated binding classes all extend `ViewDataBinding`.
+
+#### Creating
+
+The binding should be created soon after inflation to ensure that the View hierarchy is not disturbed prior to
+binding to the Views with expressions within the layout. There are a few ways to bind to a layout.
+The most common is to use the static methods on the Binding class.The inflate method inflates the View hierarchy
+and binds to it all it one step. There is a simpler version that only takes a `LayoutInflater` and one that takes a `ViewGroup` as well:
+
+```java
+MyLayoutBinding binding = MyLayoutBinding.inflate(layoutInflater);
+MyLayoutBinding binding = MyLayoutBinding.inflate(layoutInflater, viewGroup, false);
+```
+If the layout was inflated using a different mechanism, it may be bound separately:
+```java
+MyLayoutBinding binding = MyLayoutBinding.bind(viewRoot);
+```
+Sometimes the binding cannot be known in advance. In such cases, the binding can be created using the DataBindingUtil class:
+```java
+ViewDataBinding binding = DataBindingUtil.inflate(LayoutInflater, layoutId,
+    parent, attachToParent);
+ViewDataBinding binding = DataBindingUtil.bindTo(viewRoot, layoutId);
+```
+
+### Views With IDs
+
+A public final field will be generated for each View with an ID in the layout.
+The binding does a single pass on the View hierarchy, extracting the Views with IDs.
+This mechanism can be faster than calling findViewById for several Views.
+
+```xml
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+   <data>
+       <variable name="user" type="com.example.User"/>
+   </data>
+   <LinearLayout
+       android:orientation="vertical"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
+       <TextView android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="@{user.firstName}"
+   android:id="@+id/firstName"/>
+       <TextView android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="@{user.lastName}"
+  android:id="@+id/lastName"/>
+   </LinearLayout>
+</layout>
+```
+
+Will generate a binding class with:
+
+```xml
+public final TextView firstName;
+public final TextView lastName;
+```
+IDs are not nearly as necessary as without data binding,
+but there are still some instances where access to Views are still necessary from code.
+
+### Variables
+
+Each variable will be given accessor methods.
+```xml
+<data>
+    <import type="android.graphics.drawable.Drawable"/>
+    <variable name="user"  type="com.example.User"/>
+    <variable name="image" type="Drawable"/>
+    <variable name="note"  type="String"/>
+</data>
+```
+
+will generate setters and getters in the binding:
+
+```java
+public abstract com.example.User getUser();
+public abstract void setUser(com.example.User user);
+public abstract Drawable getImage();
+public abstract void setImage(Drawable image);
+public abstract String getNote();
+public abstract void setNote(String note);
+```
+
+### ViewStubs
+
+`ViewStubs` are a little different from normal Views.
+They start off invisible and when they either are made visible or are explicitly told to inflate,
+they replace themselves in the layout by inflating another layout.
+
+Because the `ViewStub` essentially disappears from the View hierarchy,
+the View in the binding object must also disappear to allow collection.
+Because the Views are final, a `ViewStubProxy` object takes the place of the `ViewStub`,
+giving the developer access to the `ViewStub` when it exists and also access to the inflated View hierarchy when the `ViewStub` has been inflated.
+
+When inflating another layout, a binding must be established for the new layout.
+Therefore, the `ViewStubProxy` must listen to the ViewStub's `ViewStub.OnInflateListener` and establish the binding at that time.
+Since only one can exist, the `ViewStubProxy` allows the developer to set an `OnInflateListener` on it that it will call after establishing the binding.
+
+
+### Advanced Binding
+
+#### Dynamic Variables
+
+At times, the specific binding class won't be known. For example,
+a `RecyclerView.Adapter` operating against arbitrary layouts won't know the specific binding class.
+It still must assign the binding value during the `onBindViewHolder(VH, int)`.
+
+In this example, all layouts that the RecyclerView binds to have an "item" variable.
+The BindingHolder has a getBinding method returning the `ViewDataBinding` base.
+```java
+public void onBindViewHolder(BindingHolder holder, int position) {
+   final T item = mItems.get(position);
+   holder.getBinding().setVariable(BR.item, item);
+   holder.getBinding().executePendingBindings();
+}
+```
+
+#### Immediate Binding
+
+When a variable or observable changes, the binding will be scheduled to change before the next frame.
+There are times, however, when binding must be executed immediately. To force execution, use the executePendingBindings() method.
+
+#### Background Thread
+
+You can change your data model in a background thread as long as it is not a collection.
+Data binding will localize each variable / field while evaluating to avoid any concurrency issues.
