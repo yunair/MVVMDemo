@@ -453,6 +453,8 @@ The Generated binding classes all extend `ViewDataBinding`.
 
 #### Creating
 
+**In my option, it's useful for `Fragment`**
+
 The binding should be created soon after inflation to ensure that the View hierarchy is not disturbed prior to
 binding to the Views with expressions within the layout. There are a few ways to bind to a layout.
 The most common is to use the static methods on the Binding class.The inflate method inflates the View hierarchy
@@ -473,7 +475,7 @@ ViewDataBinding binding = DataBindingUtil.inflate(LayoutInflater, layoutId,
 ViewDataBinding binding = DataBindingUtil.bindTo(viewRoot, layoutId);
 ```
 
-### Views With IDs
+#### Views With IDs
 
 A public final field will be generated for each View with an ID in the layout.
 The binding does a single pass on the View hierarchy, extracting the Views with IDs.
@@ -509,7 +511,7 @@ public final TextView lastName;
 IDs are not nearly as necessary as without data binding,
 but there are still some instances where access to Views are still necessary from code.
 
-### Variables
+#### Variables
 
 Each variable will be given accessor methods.
 ```xml
@@ -532,7 +534,7 @@ public abstract String getNote();
 public abstract void setNote(String note);
 ```
 
-### ViewStubs
+#### ViewStubs
 
 `ViewStubs` are a little different from normal Views.
 They start off invisible and when they either are made visible or are explicitly told to inflate,
@@ -548,9 +550,9 @@ Therefore, the `ViewStubProxy` must listen to the ViewStub's `ViewStub.OnInflate
 Since only one can exist, the `ViewStubProxy` allows the developer to set an `OnInflateListener` on it that it will call after establishing the binding.
 
 
-### Advanced Binding
+#### Advanced Binding
 
-#### Dynamic Variables
+##### Dynamic Variables
 
 At times, the specific binding class won't be known. For example,
 a `RecyclerView.Adapter` operating against arbitrary layouts won't know the specific binding class.
@@ -566,12 +568,239 @@ public void onBindViewHolder(BindingHolder holder, int position) {
 }
 ```
 
-#### Immediate Binding
+##### Immediate Binding
 
 When a variable or observable changes, the binding will be scheduled to change before the next frame.
 There are times, however, when binding must be executed immediately. To force execution, use the executePendingBindings() method.
 
-#### Background Thread
+##### Background Thread
 
 You can change your data model in a background thread as long as it is not a collection.
 Data binding will localize each variable / field while evaluating to avoid any concurrency issues.
+
+### Attribute Setters
+
+Whenever a bound value changes, the generated binding class must call a setter method on the View with the binding expression.
+The data binding framework has ways to customize which method to call to set the value.
+
+#### Automatic Setters
+
+For an attribute, data binding tries to find the method setAttribute.
+The namespace for the attribute does not matter, only the attribute name itself.
+
+For example, an expression associated with TextView's attribute android:text will look for a setText(String).
+If the expression returns an int, data binding will search for a setText(int) method.
+Be careful to have the expression return the correct type, casting if necessary.
+Note that data binding will work even if no attribute exists with the given name.
+You can then easily "create" attributes for any setter by using data binding.
+For example, support DrawerLayout doesn't have any attributes, but plenty of setters.
+You can use the automatic setters to use one of these.
+```xml
+<android.support.v4.widget.DrawerLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:scrimColor="@{@color/scrim}"
+    app:drawerListener="@{fragment.drawerListener}"/>
+```
+
+#### Renamed Setters
+
+Some attributes have setters that don't match by name.
+For these methods, an attribute may be associated with the setter through `BindingMethods` annotation.
+This must be associated with a class and contains `BindingMethod` annotations, one for each renamed method.
+For example, the `android:tint` attribute is really associated with `setImageTintList(ColorStateList)`, not `setTint`.
+```xml
+@BindingMethods({
+       @BindingMethod(type = "android.widget.ImageView",
+                      attribute = "android:tint",
+                      method = "setImageTintList"),
+})
+```
+It is unlikely that developers will need to rename setters; the android framework attributes have already been implemented.
+
+#### Custom Setters
+
+Some attributes need custom binding logic.
+For example, there is no associated setter for the `android:paddingLeft` attribute. Instead, `setPadding(left, top, right, bottom)` exists.
+A static binding adapter method with the `BindingAdapter` annotation allows the developer to customize how a setter for an attribute is called.
+
+The android attributes have already had `BindingAdapters` created. For example, here is the one for `paddingLeft`:
+```java
+@BindingAdapter("android:paddingLeft")
+public static void setPaddingLeft(View view, int padding) {
+   view.setPadding(padding,
+                   view.getPaddingTop(),
+                   view.getPaddingRight(),
+                   view.getPaddingBottom());
+}
+```
+Binding adapters are useful for other types of customization.
+For example, a custom loader can be called off-thread to load an image.
+
+Developer-created binding adapters will override the data binding default adapters when there is a conflict.
+
+You can also have adapters that receive multiple parameters.
+```java
+@BindingAdapter({"bind:imageUrl", "bind:error"})
+public static void loadImage(ImageView view, String url, Drawable error) {
+   Picasso.with(view.getContext()).load(url).error(error).into(view);
+}
+```
+```xml
+<ImageView app:imageUrl=“@{venue.imageUrl}”
+app:error=“@{@drawable/venueError}”/>
+```
+This adapter will be called if both **imageUrl** and **error** are used for an ImageView and imageUrl is a string and error is a drawable.
+
+- Custom namespaces are ignored during matching.
+- You can also write adapters for android namespace.
+
+Binding adapter methods may optionally take the old values in their handlers.
+A method taking old and new values should have all old values for the attributes come first, followed by the new values:
+```java
+@BindingAdapter("android:paddingLeft")
+public static void setPaddingLeft(View view, int oldPadding, int newPadding) {
+   if (oldPadding != newPadding) {
+       view.setPadding(newPadding,
+                       view.getPaddingTop(),
+                       view.getPaddingRight(),
+                       view.getPaddingBottom());
+   }
+}
+```
+Event handlers may only be used with interfaces or abstract classes with one abstract method. For example:
+```java
+@BindingAdapter("android:onLayoutChange")
+public static void setOnLayoutChangeListener(View view, View.OnLayoutChangeListener oldValue,
+       View.OnLayoutChangeListener newValue) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        if (oldValue != null) {
+            view.removeOnLayoutChangeListener(oldValue);
+        }
+        if (newValue != null) {
+            view.addOnLayoutChangeListener(newValue);
+        }
+    }
+}
+```
+When a listener has multiple methods, it must be split into multiple listeners.
+For example, `View.OnAttachStateChangeListener` has two methods:
+`onViewAttachedToWindow()` and `onViewDetachedFromWindow()`.
+We must then create two interfaces to differentiate the attributes and handlers for them.
+```java
+@TargetApi(VERSION_CODES.HONEYCOMB_MR1)
+public interface OnViewDetachedFromWindow {
+    void onViewDetachedFromWindow(View v);
+}
+
+@TargetApi(VERSION_CODES.HONEYCOMB_MR1)
+public interface OnViewAttachedToWindow {
+    void onViewAttachedToWindow(View v);
+}
+```
+Because changing one listener will also affect the other, we must have three different binding adapters,
+one for each attribute and one for both, should they both be set.
+```java
+@BindingAdapter("android:onViewAttachedToWindow")
+public static void setListener(View view, OnViewAttachedToWindow attached) {
+    setListener(view, null, attached);
+}
+
+@BindingAdapter("android:onViewDetachedFromWindow")
+public static void setListener(View view, OnViewDetachedFromWindow detached) {
+    setListener(view, detached, null);
+}
+
+@BindingAdapter({"android:onViewDetachedFromWindow", "android:onViewAttachedToWindow"})
+public static void setListener(View view, final OnViewDetachedFromWindow detach,
+        final OnViewAttachedToWindow attach) {
+    if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB_MR1) {
+        final OnAttachStateChangeListener newListener;
+        if (detach == null && attach == null) {
+            newListener = null;
+        } else {
+            newListener = new OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    if (attach != null) {
+                        attach.onViewAttachedToWindow(v);
+                    }
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    if (detach != null) {
+                        detach.onViewDetachedFromWindow(v);
+                    }
+                }
+            };
+        }
+        final OnAttachStateChangeListener oldListener = ListenerUtil.trackListener(view,
+                newListener, R.id.onAttachStateChangeListener);
+        if (oldListener != null) {
+            view.removeOnAttachStateChangeListener(oldListener);
+        }
+        if (newListener != null) {
+            view.addOnAttachStateChangeListener(newListener);
+        }
+    }
+}
+```
+The above example is slightly more complicated than normal
+because View uses add and remove for the listener instead of a set method for `View.OnAttachStateChangeListener`.
+The `android.databinding.adapters.ListenerUtil` class helps keep track of the previous listeners so that they may be removed in the Binding Adapter.
+
+By annotating the interfaces `OnViewDetachedFromWindow` and `OnViewAttachedToWindow` with `@TargetApi(VERSION_CODES.HONEYCOMB_MR1)`,
+the data binding code generator knows that the listener should only be generated when running on Honeycomb MR1 and new devices,
+the same version supported by `addOnAttachStateChangeListener(View.OnAttachStateChangeListener)`.
+
+### Converters
+
+#### Object Conversions
+
+When an Object is returned from a binding expression, a setter will be chosen from the automatic,
+renamed, and custom setters. The Object will be cast to a parameter type of the chosen setter.
+
+This is a convenience for those using ObservableMaps to hold data. for example:
+```xml
+<TextView
+   android:text='@{userMap["lastName"]}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+The `userMap` returns an Object and that Object will be automatically cast to parameter type found in the setter `setText(CharSequence)`.
+When there may be confusion about the parameter type, the developer will need to cast in the expression.
+
+#### Custom Conversions
+
+Sometimes conversions should be automatic between specific types. For example, when setting the background:
+
+```xml
+<View
+   android:background="@{isError ? @color/red : @color/white}"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+
+Here, the background takes a `Drawable`, but the color is an integer. Whenever a `Drawable` is expected and an integer is returned,
+the `int` should be converted to a `ColorDrawable`. This conversion is done using a static method with a BindingConversion annotation:
+
+```java
+@BindingConversion
+public static ColorDrawable convertColorToDrawable(int color) {
+   return new ColorDrawable(color);
+}
+```
+Note that conversions only happen at the setter level, so it is **not allowed** to mix types like this:
+```xml
+<View
+   android:background="@{isError ? @drawable/error : @color/white}"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+
+### Contact me
+
+If you think there is some issue in my code, please send me an email.
+my email address is airzhaoyn@gmail.com
+

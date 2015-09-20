@@ -457,7 +457,7 @@ ViewDataBinding binding = DataBindingUtil.inflate(LayoutInflater, layoutId,
 ViewDataBinding binding = DataBindingUtil.bindTo(viewRoot, layoutId);
 ```
 
-### Views With IDs
+#### Views With IDs
 
 在`layout`中对每个有ID的View，在对应的绑定类中会产生一个public final字段。
 数据绑定会提取出这些View的Id，通过在View层级上使用单向传递，这个方式会比对一堆View使用`findViewById`快一些
@@ -511,7 +511,7 @@ public abstract String getNote();
 public abstract void setNote(String note);
 ```
 
-### ViewStubs
+#### ViewStubs
 
 `ViewStub`s 和正常的View是不同的.它们在刚开始的时候是不可见的，当他们变的可见或者被明确的inflate之后，
 它们会被另外一个layout中inflate的View替代。
@@ -523,9 +523,9 @@ giving the developer access to the `ViewStub` when it exists and also access to 
 当inflate其他的layout时，必须建立一个新的绑定来绑定新的layout。因此，`ViewStubProxy`必须在监听`ViewStub`的 `ViewStub.OnInflateListener`的同时建立绑定。
 因为只有一个可以存在， `ViewStubProxy`允许开发者为它设置一个`OnInflateListener`，它会在建立绑定之后被调用
 
-### Advanced Binding
+#### Advanced Binding
 
-#### Dynamic Variables
+##### Dynamic Variables
 
 有时候，不能立刻知道具体的绑定类。例如，一个`RecyclerView.Adapter`操作任意layout，这个时候我们不能知道具体的绑定类。
 但是它必须被赋值给一个绑定的值在执行`onBindViewHolder(VH, int)`的时候。
@@ -540,16 +540,235 @@ public void onBindViewHolder(BindingHolder holder, int position) {
 }
 ```
 
-#### Immediate Binding
+##### Immediate Binding
 
 当一个变量或者一个可观察的东西改变时，对应的UI将会在下一帧之前被改变。
 然而，有时候UI必须立刻被改变。为了强制进行这个改变，主动调用`executePendingBindings() `方法。
 
-#### Background Thread
+##### Background Thread
 
 你可以修改你的数据model在后台线程中，只要它不是一个集合。
 在操作的时候，数据绑定将会把变量/字段变成局部的，防止任何并发的问题发生。
 
+### Attribute Setters
+
+任何时候一个绑定的对象值改变了，在View层面上，产生的绑定类必须通过上面介绍的表达式调用set方法
+数据绑定框架有许多方式来自定义调用set方法
+
+#### Automatic Setters
+
+对于某个属性来说，数据绑定尝试寻找`set属性`方法，和这个属性的namespace无关，只和这个属性的名字有关。
+
+例如，一个和`TextView`的属性`android:text`关联的表达式，数据绑定将会寻找`setText(String)`方法，如果表达式返回一个`int`，
+数据绑定将会寻找`setText(int)`方法。
+注意，让表达式返回合适的类型，如果需要的话，可以使用类型转换。
+如果这个属性不存在，数据绑定依旧不会抛出异常。通过数据绑定，你可以很容易的通过set方法，创造对应的属性。
+例如，support包中的`DrawerLayout`不含有任何属性，但是有一大堆set方法。你可以使用set后面的属性名来作为对应的属性。
+```xml
+<android.support.v4.widget.DrawerLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:scrimColor="@{@color/scrim}"
+    app:drawerListener="@{fragment.drawerListener}"/>
+```
+
+#### Renamed Setters
+
+一些属性有set方法，但命名方式不是set+属性名的方式。
+对于这种方法，使用`BindingMethods`注解将属性和对应的set方法关联起来，
+它会将一个带有`BindingMethod`注解的类，属性名称，该属性对应的方法名称三者关联起来。
+例如，`android:tint`属性和`setImageTintList(ColorStateList)`方法相关联，不和`setTint()`方法关联
+```xml
+@BindingMethods({
+       @BindingMethod(type = "android.widget.ImageView",
+                      attribute = "android:tint",
+                      method = "setImageTintList"),
+})
+```
+由于Android框架属性名已经被确定，开发者重命名set方法是不可能的。
+
+#### Custom Setters
+
+一些属性需要自定义绑定逻辑。
+例如， `android:paddingLeft`属性没有一个关联的set方法，但是有一个`setPadding(left, top, right, bottom)`方法存在。
+一个有 `BindingAdapter`注解的 静态的绑定适配器方法 允许开发者定义 当调用set方法时 如何给这个属性赋值。
+
+在Android属性中，`BindingAdapter`早已出现。例如，对于`paddingLeft`属性
+```java
+@BindingAdapter("android:paddingLeft")
+public static void setPaddingLeft(View view, int padding) {
+   view.setPadding(padding,
+                   view.getPaddingTop(),
+                   view.getPaddingRight(),
+                   view.getPaddingBottom());
+}
+```
+绑定适配器对自定义其他类型很有用。
+例如，一个自定义loader可以加载完图片之后关闭这个线程。
+
+当开发者创建的绑定适配器和数据绑定框架提供的默认适配器冲突时，将会覆盖默认适配器
+
+你当然可以有一个接收多个参数的适配器
+```java
+@BindingAdapter({"bind:imageUrl", "bind:error"})
+public static void loadImage(ImageView view, String url, Drawable error) {
+   Picasso.with(view.getContext()).load(url).error(error).into(view);
+}
+```
+```xml
+<ImageView app:imageUrl=“@{venue.imageUrl}”
+app:error=“@{@drawable/venueError}”/>
+```
+当imageUrl是一个string、error是一个drawable并且ImageView使用了**imageUrl** 和 **error**的时候，这个适配器将会被调用。
+
+- 在进行匹配的时候，自定义namespaces将会被忽略.
+- 你可以为Android namespace写对应的适配器.
+
+在绑定适配器方法的handlers中，可以随意的获取旧的值。
+一个获取旧的值和新的值的方法需要先声明该属性的所有旧的值，接着跟新的值
+```java
+@BindingAdapter("android:paddingLeft")
+public static void setPaddingLeft(View view, int oldPadding, int newPadding) {
+   if (oldPadding != newPadding) {
+       view.setPadding(newPadding,
+                       view.getPaddingTop(),
+                       view.getPaddingRight(),
+                       view.getPaddingBottom());
+   }
+}
+```
+事件处理只被用于接口或者抽象类中的抽象方法。例如：
+```java
+@BindingAdapter("android:onLayoutChange")
+public static void setOnLayoutChangeListener(View view, View.OnLayoutChangeListener oldValue,
+       View.OnLayoutChangeListener newValue) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+        if (oldValue != null) {
+            view.removeOnLayoutChangeListener(oldValue);
+        }
+        if (newValue != null) {
+            view.addOnLayoutChangeListener(newValue);
+        }
+    }
+}
+```
+当一个listener有许多方法时，它必须被分离成多个listeners。
+例如，`View.OnAttachStateChangeListener`有两个方法：
+`onViewAttachedToWindow()` 和 `onViewDetachedFromWindow()`.
+我们必须创建两个接口来区分他们不同的属性和handlers。
+```java
+@TargetApi(VERSION_CODES.HONEYCOMB_MR1)
+public interface OnViewDetachedFromWindow {
+    void onViewDetachedFromWindow(View v);
+}
+
+@TargetApi(VERSION_CODES.HONEYCOMB_MR1)
+public interface OnViewAttachedToWindow {
+    void onViewAttachedToWindow(View v);
+}
+```
+为了让所有的属性都可以被设置，我们必须有三个不同的绑定适配器。因为修改一个listener将会影响另一个，
+一个对应所有，然后另外两个分别对应每个属性。
+```java
+@BindingAdapter("android:onViewAttachedToWindow")
+public static void setListener(View view, OnViewAttachedToWindow attached) {
+    setListener(view, null, attached);
+}
+
+@BindingAdapter("android:onViewDetachedFromWindow")
+public static void setListener(View view, OnViewDetachedFromWindow detached) {
+    setListener(view, detached, null);
+}
+
+@BindingAdapter({"android:onViewDetachedFromWindow", "android:onViewAttachedToWindow"})
+public static void setListener(View view, final OnViewDetachedFromWindow detach,
+        final OnViewAttachedToWindow attach) {
+    if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB_MR1) {
+        final OnAttachStateChangeListener newListener;
+        if (detach == null && attach == null) {
+            newListener = null;
+        } else {
+            newListener = new OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    if (attach != null) {
+                        attach.onViewAttachedToWindow(v);
+                    }
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    if (detach != null) {
+                        detach.onViewDetachedFromWindow(v);
+                    }
+                }
+            };
+        }
+        final OnAttachStateChangeListener oldListener = ListenerUtil.trackListener(view,
+                newListener, R.id.onAttachStateChangeListener);
+        if (oldListener != null) {
+            view.removeOnAttachStateChangeListener(oldListener);
+        }
+        if (newListener != null) {
+            view.addOnAttachStateChangeListener(newListener);
+        }
+    }
+}
+```
+上面的例如有一些复杂，因为对应`View.OnAttachStateChangeListener`，View使用add和remove对应的listener 而不是使用set方法。
+`android.databinding.adapters.ListenerUtil`这个类可以帮助你跟踪之前的listeners，所以它们可以在绑定适配器里移除。
+
+用`@TargetApi(VERSION_CODES.HONEYCOMB_MR1)`注解`OnViewDetachedFromWindow` 和 `OnViewAttachedToWindow`，
+数据绑定代码生成器知道这个listener只应该在 Honeycomb MR1和更新的版本上生成。
+对于`addOnAttachStateChangeListener(View.OnAttachStateChangeListener)`同样支持。
+
+### Converters
+
+#### Object Conversions
+
+当绑定表达式返回一个对象，将会从前面提到[automatic](#Automatic Setters) ,[renamed](#Renamed Setters),
+和[custom](#Custom Setters)中的选择set方法。这个对象会通过被选择的set方法转换成参数类型。
+
+使用`ObservableMaps`来储存数据是很方便的一种方式。例如：
+```xml
+<TextView
+   android:text='@{userMap["lastName"]}'
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+`userMap`返回一个对象这个对象将会被自动转化成在set方法中找到的参数类型`setText(CharSequence)`，即被转化为`CharSequence`类型。
+当参数类型存在冲突的时候，开发者需要在表达式中明确转化该类型
+
+#### Custom Conversions
+
+有些时候转化策略会自动转化为特殊的类型。例如，当设置背景颜色的时候
+```xml
+<View
+   android:background="@{isError ? @color/red : @color/white}"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+背景颜色使用`Drawable`类型，但是`color`属性是`int`类型。当需要一个`Drawable`却返回一个`int`的时候，
+`int`会被转换为`ColorDrawable`类型，这个转化通过使用带有BindingConversion注解的静态方法来完成。
+```java
+@BindingConversion
+public static ColorDrawable convertColorToDrawable(int color) {
+   return new ColorDrawable(color);
+}
+```
+注意转化只发生在set方法的时候，所以，该框架**不允许**像下面一样混用类型
+```xml
+<View
+   android:background="@{isError ? @drawable/error : @color/white}"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"/>
+```
+
+### Contact me
+
+**有谁知道Handler怎么翻译吗？欢迎发邮件到airzhaoyn@gmail.com告知**
+
+**如果看到代码或者翻译中有什么问题，同样欢迎发邮件到airzhaoyn@gmail.com告知**
 
 [1]: ./README_en.md
 
