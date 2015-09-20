@@ -504,7 +504,7 @@ This mechanism can be faster than calling findViewById for several Views.
 
 Will generate a binding class with:
 
-```xml
+```java
 public final TextView firstName;
 public final TextView lastName;
 ```

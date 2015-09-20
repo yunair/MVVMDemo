@@ -483,7 +483,7 @@ ViewDataBinding binding = DataBindingUtil.bindTo(viewRoot, layoutId);
 </layout>
 ```
 将会在绑定类中产生这样如下的变量
-```xml
+```java
 public final TextView firstName;
 public final TextView lastName;
 ```
@@ -726,8 +726,8 @@ public static void setListener(View view, final OnViewDetachedFromWindow detach,
 
 #### Object Conversions
 
-当绑定表达式返回一个对象，将会从前面提到[automatic](#Automatic Setters) ,[renamed](#Renamed Setters),
-和[custom](#Custom Setters)中的选择set方法。这个对象会通过被选择的set方法转换成参数类型。
+当绑定表达式返回一个对象，将会从前面提到[automatic](#automatic-setters) ,[renamed](#renamed-setters),
+和[custom](#custom-setters)中的选择set方法。这个对象会通过被选择的set方法转换成参数类型。
 
 使用`ObservableMaps`来储存数据是很方便的一种方式。例如：
 ```xml
