@@ -1,7 +1,7 @@
 # MVVMDemo
 ## This is a Demo About Google Data Binding Guide
 ## The URL is https://developer.android.com/intl/zh-cn/tools/data-binding/guide.html
-## English Version see [there][1]
+## English Version see [there][0]
 ---
 
 ### 初始化依赖
@@ -174,7 +174,7 @@ eg:
     ...
 </data>
 ```
-你可以在`CustomBindingClassNameActivity.java`中看到其中的区别
+你可以在[CustomBindingClassNameActivity][1]中看到其中的区别
 
 ### Binding Event
 
@@ -774,8 +774,8 @@ public static ColorDrawable convertColorToDrawable(int color) {
 
 **如果看到代码或者翻译中有什么问题，同样欢迎发邮件到airzhaoyn@gmail.com告知**
 
-[1]: ./README_en.md
-
+[0]: ./README_en.md
+[1]: src/main/java/com.air.mvvmdemo.view.CustomBindingClassNameActivity
 
 
 
