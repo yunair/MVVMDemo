@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="venue"
+            type="com.air.mvvmdemo.model.Venue"/>
+    </data>
+    <LinearLayout
+                  android:orientation="vertical"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent">
+        <android.support.v4.widget.DrawerLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:scrimColor="@{@color/scrim}"
+            app:drawerListener="@{fragment.drawerListener}"/>
+        <ImageView
+            android:id="@+id/image_view"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            app:imageUrl="@{venue.imageUrl}"
+            app:error="@{@drawable/venueError}"/>
+    </LinearLayout>
+</layout>

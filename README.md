@@ -580,7 +580,7 @@ public void onBindViewHolder(BindingHolder holder, int position) {
 例如，`android:tint`属性和`setImageTintList(ColorStateList)`方法相关联，不和`setTint()`方法关联
 ```xml
 @BindingMethods({
-       @BindingMethod(type = "android.widget.ImageView",
+       @BindingMethod(type = android.widget.ImageView.class,
                       attribute = "android:tint",
                       method = "setImageTintList"),
 })
@@ -616,8 +616,8 @@ public static void loadImage(ImageView view, String url, Drawable error) {
 }
 ```
 ```xml
-<ImageView app:imageUrl=“@{venue.imageUrl}”
-app:error=“@{@drawable/venueError}”/>
+<ImageView app:imageUrl="@{venue.imageUrl}"
+                       app:error="@{@drawable/venueError}"/>
 ```
 当imageUrl是一个string、error是一个drawable并且ImageView使用了**imageUrl** 和 **error**的时候，这个适配器将会被调用。
 
@@ -637,6 +637,9 @@ public static void setPaddingLeft(View view, int oldPadding, int newPadding) {
    }
 }
 ```
+
+可以参考`AttributeSettersActivity.java`
+
 事件处理只被用于接口或者抽象类中的抽象方法。例如：
 ```java
 @BindingAdapter("android:onLayoutChange")
@@ -720,7 +723,8 @@ public static void setListener(View view, final OnViewDetachedFromWindow detach,
 
 用`@TargetApi(VERSION_CODES.HONEYCOMB_MR1)`注解`OnViewDetachedFromWindow` 和 `OnViewAttachedToWindow`，
 数据绑定代码生成器知道这个listener只应该在 Honeycomb MR1和更新的版本上生成。
-对于`addOnAttachStateChangeListener(View.OnAttachStateChangeListener)`同样支持。
+//对于`addOnAttachStateChangeListener(View.OnAttachStateChangeListener)`同样支持。
+`setListener(View view, final OnViewDetachedFromWindow detach, final OnViewAttachedToWindow attach)`也能达到同样的效果。
 
 ### Converters
 

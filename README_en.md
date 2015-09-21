@@ -611,7 +611,7 @@ This must be associated with a class and contains `BindingMethod` annotations, o
 For example, the `android:tint` attribute is really associated with `setImageTintList(ColorStateList)`, not `setTint`.
 ```xml
 @BindingMethods({
-       @BindingMethod(type = "android.widget.ImageView",
+       @BindingMethod(type = android.widget.ImageView.class,
                       attribute = "android:tint",
                       method = "setImageTintList"),
 })
@@ -647,8 +647,8 @@ public static void loadImage(ImageView view, String url, Drawable error) {
 }
 ```
 ```xml
-<ImageView app:imageUrl=“@{venue.imageUrl}”
-app:error=“@{@drawable/venueError}”/>
+<ImageView app:imageUrl="@{venue.imageUrl}"
+                       app:error="@{@drawable/venueError}"/>
 ```
 This adapter will be called if both **imageUrl** and **error** are used for an ImageView and imageUrl is a string and error is a drawable.
 
