@@ -180,7 +180,7 @@ eg:
 
 如果想绑定事件(eg: View.OnClickListener),
 和绑定数据类似，定义一个Handler类来处理事件，然后将对应的事件在`@{}`中声明，
-同时记得在java文件中set那个Handler，你可以在`BaseActivity.java`中看到具体的用法
+同时记得在java文件中set那个Handler，你可以在[BaseActivity][2]中看到具体的用法
 
 ### Includes
 
@@ -204,7 +204,7 @@ eg:
 </layout>
 ```
 
-在你的`name.xml`和`contact.xml`的`data`标签内，必须也拥有`user`变量，该Demo参见`IncludeActivity.java`
+在你的`name.xml`和`contact.xml`的`data`标签内，必须也拥有`user`变量，该Demo参见[IncludeActivity][3]
 
 ### Expression Language
 
@@ -282,7 +282,7 @@ android:text="@{map[&quot;firstName&quot;]}"
 - 使用双引号`"`作为最外层包裹，但是内部使用反引号```
 - 使用双引号`"`作为最外层包裹，但是内部使用xml的特殊字符`&quot;`来代替需要的双引号
 
-可以在`QuoteActivity.java`类看具体的用法
+可以在[QuoteActivity.java][4]类看具体的用法
 
 #### Resources
 
@@ -425,7 +425,7 @@ user.add(17);
    android:layout_height="wrap_content"/>
 ```
 
-该Demo参见`ObservableModel.java`
+该Demo参见[ObservableModel][5]`
 
 ### Generated Binding
 
@@ -638,7 +638,7 @@ public static void setPaddingLeft(View view, int oldPadding, int newPadding) {
 }
 ```
 
-可以参考`AttributeSettersActivity.java`
+可以参考[AttributeSettersActivity][6]
 
 事件处理只被用于接口或者抽象类中的抽象方法。例如：
 ```java
@@ -775,7 +775,12 @@ public static ColorDrawable convertColorToDrawable(int color) {
 **如果看到代码或者翻译中有什么问题，同样欢迎发邮件到airzhaoyn@gmail.com告知**
 
 [0]: ./README_en.md
-[1]: app/src/main/java/com/air/mvvmdemo/view/CustomBindingClassNameActivity
+[1]: app/src/main/java/com/air/mvvmdemo/view/CustomBindingClassNameActivity.java
+[2]: app/src/main/java/com/air/mvvmdemo/view/BaseActivity.java
+[3]: app/src/main/java/com/air/mvvmdemo/view/IncludeActivity.java
+[4]: app/src/main/java/com/air/mvvmdemo/view/QuoteActivity.java
+[5]: app/src/main/java/com/air/mvvmdemo/view/ObservableModel.java
+[6]: app/src/main/java/com/air/mvvmdemo/view/AttributeSettersActivity.java
 
 
 

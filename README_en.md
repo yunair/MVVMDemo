@@ -183,13 +183,13 @@ Any package may be used if the full package is provided:
     ...
 </data>
 ```
-this demo you can see `CustomBindingClassNameActivity.java`
+this demo you can see [CustomBindingClassNameActivity][1]
 
 ### Binding Event
 
 Binding Event is similar with Binding Data, first define a handler to handle the event,
 declare the event in '@{}', at the same time, set the handler in java file,
-you can see usage in `BaseActivity.java`
+you can see usage in [BaseActivity][2]
 
 ### Includes
 Variables may be passed into an included layout's binding from the containing layout
@@ -214,6 +214,8 @@ by using the application namespace and the variable name in an attribute:
 ```
 
 you need `user` variable as a direct child of a data element in your `name.xml` and `contact.xml`
+
+you can see this in [IncludeActivity][3]
 
 Data binding does not support `include` as a direct child of a `merge` element.
 
@@ -291,7 +293,7 @@ android:text="@{map[&quot;firstName&quot;]}"
 - using double quotes around the attribute value,  use the back quote (```) for string.
 - using double quotes around the attribute value,  use the `&quot;`for string.
 
-this demo you can see `QuoteActivity.java`
+this demo you can see [QuoteActivity][4]
 
 
 #### Resources
@@ -443,7 +445,7 @@ In the layout, the list may be accessed through the indices:
    android:layout_height="wrap_content"/>
 ```
 
-You can see these in `ObservableModel.java`
+You can see these in [ObservableModel][5]
 
 ### Generated Binding
 
@@ -668,6 +670,9 @@ public static void setPaddingLeft(View view, int oldPadding, int newPadding) {
    }
 }
 ```
+
+you can see [AttributeSettersActivity][6]
+
 Event handlers may only be used with interfaces or abstract classes with one abstract method. For example:
 ```java
 @BindingAdapter("android:onLayoutChange")
@@ -803,4 +808,11 @@ Note that conversions only happen at the setter level, so it is **not allowed** 
 
 If you think there is some issue in my code, please send me an email.
 my email address is airzhaoyn@gmail.com
+
+[1]: app/src/main/java/com/air/mvvmdemo/view/CustomBindingClassNameActivity.java
+[2]: app/src/main/java/com/air/mvvmdemo/view/BaseActivity.java
+[3]: app/src/main/java/com/air/mvvmdemo/view/IncludeActivity.java
+[4]: app/src/main/java/com/air/mvvmdemo/view/QuoteActivity.java
+[5]: app/src/main/java/com/air/mvvmdemo/view/ObservableModel.java
+[6]: app/src/main/java/com/air/mvvmdemo/view/AttributeSettersActivity.java
 
