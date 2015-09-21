@@ -611,7 +611,7 @@ Some attributes have setters that don't match by name.
 For these methods, an attribute may be associated with the setter through `BindingMethods` annotation.
 This must be associated with a class and contains `BindingMethod` annotations, one for each renamed method.
 For example, the `android:tint` attribute is really associated with `setImageTintList(ColorStateList)`, not `setTint`.
-```xml
+```java
 @BindingMethods({
        @BindingMethod(type = android.widget.ImageView.class,
                       attribute = "android:tint",

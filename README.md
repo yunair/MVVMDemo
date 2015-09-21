@@ -578,7 +578,7 @@ public void onBindViewHolder(BindingHolder holder, int position) {
 对于这种方法，使用`BindingMethods`注解将属性和对应的set方法关联起来，
 它会将一个带有`BindingMethod`注解的类，属性名称，该属性对应的方法名称三者关联起来。
 例如，`android:tint`属性和`setImageTintList(ColorStateList)`方法相关联，不和`setTint()`方法关联
-```xml
+```java
 @BindingMethods({
        @BindingMethod(type = android.widget.ImageView.class,
                       attribute = "android:tint",
