@@ -775,7 +775,7 @@ public static ColorDrawable convertColorToDrawable(int color) {
 **如果看到代码或者翻译中有什么问题，同样欢迎发邮件到airzhaoyn@gmail.com告知**
 
 [0]: ./README_en.md
-[1]: ./app/src/main/java/com.air.mvvmdemo.view.CustomBindingClassNameActivity
+[1]: app/src/main/java/com/air/mvvmdemo/view/CustomBindingClassNameActivity
 
 
 
