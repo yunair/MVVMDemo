@@ -21,7 +21,7 @@ apply plugin: 'com.android.databinding'
 
 ---
 
-###
+### Data Binding Layout Files
 
 Data-binding layout 文件和之前的layout 文件有轻微的不同, 以layout标签作为根元素，
 然后其中放置了data标签和之前的view标签。这个view标签就是你之前不使用Data-binding时的根标签。
